@@ -54,7 +54,6 @@ export async function resendOtp(data) {
 }
 
 export async function login(credentials) {
-    // debugger;
   try {
     const res = await fetch(`${BASE_URL}/login`, {
       method: "POST",
@@ -62,7 +61,8 @@ export async function login(credentials) {
       body: JSON.stringify(credentials),
     });
     const json = await res.json().catch(() => ({}));
-    return json.code && json.msg
+    // Expect LoginApiResponse shape
+    return json && (json.code || json.token || json.userInfo)
       ? json
       : { code: "UNKNOWN", msg: "Unexpected login response" };
   } catch {

@@ -4,28 +4,45 @@ import logo from "../images/argano-logo.png";
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [empId, setEmpId] = useState("");
+  const [empIdArgano, setEmpIdArgano] = useState("");
   const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailVerified, setEmailVerified] = useState(false);
   const [designation, setDesignation] = useState("");
   const [joinDate, setJoinDate] = useState("");
   const [lastWorkingDay, setLastWorkingDay] = useState("");
+  const today = new Date().toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 
   useEffect(() => {
-    const id = localStorage.getItem("loggedInEmpId");
+    // Preserve existing flow: treat presence of loggedInEmpId as session
+    const legacyEmpId = localStorage.getItem("loggedInEmpId");
+    const empIdArg = localStorage.getItem("empIdArgano") || "";
     const firstName = localStorage.getItem("firstName") || "";
     const lastName = localStorage.getItem("lastName") || "";
-    const desig = localStorage.getItem("designation") || "";
-    const join = localStorage.getItem("joinDate") || "";
-    const lastDay = localStorage.getItem("lastWorkingDay") || "";
+    const emailStored = localStorage.getItem("email") || "";
+    const verified = localStorage.getItem("emailVerified") === "true";
+    const designationStored = localStorage.getItem("designation") || "";
+    const joinStored = localStorage.getItem("joinDate") || "";
+    const lastStored = localStorage.getItem("lastWorkingDay") || "";
 
-    if (!id) {
+    if (!legacyEmpId) {
       navigate("/");
     } else {
-      setEmpId(id);
+      setEmpIdArgano(empIdArg);
       setFullName(`${firstName} ${lastName}`); // already stored in uppercase
-      setDesignation(desig);
-      setJoinDate(join);
-      setLastWorkingDay(lastDay);
+      setEmail(emailStored);
+      setEmailVerified(verified);
+
+      // Fallbacks as requested
+      const defaultDesignation = "Lead Technical Consultant";
+      const defaultJoin = new Date(2019, 5, 10).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" }); // Jun 10, 2019
+      const lastDate = new Date();
+      lastDate.setDate(lastDate.getDate() - 10); // 10 days before today
+      const defaultLast = lastDate.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+      setDesignation(designationStored || defaultDesignation);
+      setJoinDate(joinStored || defaultJoin);
+      setLastWorkingDay(lastStored || defaultLast);
     }
   }, [navigate]);
 
@@ -46,6 +63,7 @@ export default function Dashboard() {
     logo: { height: 40, cursor: "pointer" },
     rightSection: { display: "flex", alignItems: "center", gap: "15px" },
     empId: { fontWeight: "bold", color: "#2b3e6c" },
+    dateText: { color: "#2b3e6c" },
     logoutButton: {
       backgroundColor: "#d9534f",
       color: "#fff",
@@ -84,7 +102,8 @@ export default function Dashboard() {
           onClick={() => navigate("/dashboard")}
         />
         <div style={styles.rightSection}>
-          <span style={styles.empId}>{fullName} (Emp ID: {empId})</span>
+          <span style={styles.empId}>{fullName} (Emp ID: {empIdArgano})</span>
+          <span style={styles.dateText}>{today}</span>
           <button onClick={handleLogout} style={styles.logoutButton}>
             Logout
           </button>
@@ -99,13 +118,22 @@ export default function Dashboard() {
 
         <div style={styles.details}>
           <div style={styles.detailItem}>
-            <span style={styles.label}>Designation: </span> {designation}
+            <span style={styles.label}>Name: </span> {fullName}
+          </div>
+          <div style={styles.detailItem}>
+            <span style={styles.label}>Designation (at resignation): </span> {designation}
           </div>
           <div style={styles.detailItem}>
             <span style={styles.label}>Join Date: </span> {joinDate}
           </div>
           <div style={styles.detailItem}>
             <span style={styles.label}>Last Working Day: </span> {lastWorkingDay}
+          </div>
+          <div style={styles.detailItem}>
+            <span style={styles.label}>Email: </span> {email}
+          </div>
+          <div style={styles.detailItem}>
+            <span style={styles.label}>Email Verified: </span> {emailVerified ? "Yes" : "No"}
           </div>
         </div>
       </div>

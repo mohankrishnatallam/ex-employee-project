@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { login } from "../services/authService";
+import Header from "./Header";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -13,23 +14,32 @@ export default function Login() {
     setError("");
 
     try {
-      const res = await login({ email: empId, password:password } );
+      const res = await login({ empIdArgano: empId, password });
 console.log("login response --> ",res);
-      // Check backend standard structure
-      if (res && res.code === "SUCCESS") {
-        // Store user details in localStorage (uppercase names)
-        localStorage.setItem("loggedInEmpId", res.data.empId || "");
+      // Expecting LoginApiResponse { code, msg, token, userInfo }
+      if (res && res.code === "SUCCESS" && res.userInfo) {
+        localStorage.setItem("authToken", res.token || "");
+        localStorage.setItem("userId", res.userInfo.id || "");
+        localStorage.setItem("email", res.userInfo.email || "");
+        localStorage.setItem("empIdArgano", res.userInfo.empIdArgano || "");
         localStorage.setItem(
           "firstName",
-          (res.data.firstName || "").toUpperCase()
+          (res.userInfo.firstName || "").toUpperCase()
         );
         localStorage.setItem(
           "lastName",
-          (res.data.lastName || "").toUpperCase()
+          (res.userInfo.lastName || "").toUpperCase()
         );
-        localStorage.setItem("designation", res.data.designation || "");
-        localStorage.setItem("joinDate", res.data.joinDate || "");
-        localStorage.setItem("lastWorkingDay", res.data.lastWorkingDay || "");
+        localStorage.setItem(
+          "emailVerified",
+          String(Boolean(res.userInfo.emailVerified))
+        );
+
+        // Backward-compatible keys for existing flow
+        localStorage.setItem("loggedInEmpId", res.userInfo.empIdArgano || "");
+        localStorage.setItem("designation", "");
+        localStorage.setItem("joinDate", "");
+        localStorage.setItem("lastWorkingDay", "");
 
         navigate("/dashboard");
       } else {
@@ -94,46 +104,49 @@ console.log("login response --> ",res);
   };
 
   return (
-    <div style={styles.container}>
-      <h2 style={styles.title}>Login</h2>
-      <form onSubmit={handleLogin} style={styles.form}>
-        <div style={styles.field}>
-          <label style={styles.label}>Emp ID</label>
-          <input
-            type="text"
-            name="empId"
-            placeholder="Enter Emp ID"
-            value={empId}
-            onChange={(e) => setEmpId(e.target.value)}
-            style={styles.input}
-            required
-          />
-        </div>
-        <div style={styles.field}>
-          <label style={styles.label}>Password</label>
-          <input
-            type="password"
-            name="password"
-            placeholder="Enter Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-            required
-          />
-        </div>
-        <button type="submit" style={styles.button}>Login</button>
-        {error && <p style={styles.error}>{error}</p>}
-      </form>
-      <p style={styles.text}>
-        Don't have an account?{" "}
-        <button
-          type="button"
-          onClick={() => navigate("/signup")}
-          style={styles.link}
-        >
-          Register
-        </button>
-      </p>
+    <div>
+      <Header />
+      <div style={styles.container}>
+        <h2 style={styles.title}>Login</h2>
+        <form onSubmit={handleLogin} style={styles.form}>
+          <div style={styles.field}>
+            <label style={styles.label}>Emp ID</label>
+            <input
+              type="text"
+              name="empId"
+              placeholder="Enter Emp ID"
+              value={empId}
+              onChange={(e) => setEmpId(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+          <div style={styles.field}>
+            <label style={styles.label}>Password</label>
+            <input
+              type="password"
+              name="password"
+              placeholder="Enter Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={styles.input}
+              required
+            />
+          </div>
+          <button type="submit" style={styles.button}>Login</button>
+          {error && <p style={styles.error}>{error}</p>}
+        </form>
+        <p style={styles.text}>
+          Don't have an account?{" "}
+          <button
+            type="button"
+            onClick={() => navigate("/signup")}
+            style={styles.link}
+          >
+            Register
+          </button>
+        </p>
+      </div>
     </div>
   );
 }
