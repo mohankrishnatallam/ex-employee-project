@@ -120,11 +120,11 @@ export default function Signup() {
                 disabled={loadingSignup}
               />
 
-              <label style={styles.label}>Email</label>
+              <label style={styles.label}>Email ID (Personal)</label>
               <input
                 type="email"
                 name="email"
-                placeholder="Enter Email"
+                placeholder="Enter Personal Email ID"
                 value={formData.email}
                 onChange={handleChange}
                 required
